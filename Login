@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - OTP Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .mobile-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country-code {
+            width: 120px;
+            flex: 0 0 120px;
+            flex-shrink: 0;
+        }
+
+        #countryCodeDisplay {
+            width: 120px;
+        }
+
+        .mobile-input {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+            cursor: text;
+        }
+
+        .mobile-input:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .otp-delivery-option {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .otp-delivery-option label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .otp-delivery-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .otp-delivery-option label:last-child {
+            margin-bottom: 0;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .otp-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .otp-section.show {
+            display: block;
+        }
+
+        .otp-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .otp-display {
+            font-weight: bold;
+            font-size: 24px;
+            color: #667eea;
+            margin-top: 10px;
+            letter-spacing: 5px;
+        }
+
+        .otp-sent-to {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="name">Name <span class="required">*</span></label>
+                <input type="text" id="name" name="name" required>
+                <div class="error-message" id="nameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="organisation">Organisation <span class="required">*</span></label>
+                <input type="text" id="organisation" name="organisation" required>
+                <div class="error-message" id="organisationError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="countryCode">Country <span class="required">*</span></label>
+                <select id="countryCode" name="countryCode" required>
+                    <option value="">Select Country</option>
+                    <option value="+91">🇮🇳 India (+91)</option>
+                    <option value="+971">🇦🇪 UAE (+971)</option>
+                    <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+                </select>
+                <div class="error-message" id="countryError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="mobile">Mobile Number <span class="required">*</span></label>
+                <div class="mobile-wrapper">
+                    <input type="text" id="countryCodeDisplay" class="country-code" readonly placeholder="Code" style="background-color: #f5f5f5;">
+                    <input type="tel" id="mobile" name="mobile" class="mobile-input" placeholder="Enter your mobile number" required autocomplete="tel">
+                </div>
+                <div class="error-message" id="mobileError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email ID <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Send OTP to <span class="required">*</span></label>
+                <div class="otp-delivery-option">
+                    <label>
+                        <input type="radio" name="otpDelivery" value="mobile" checked>
+                        <span>Mobile Number</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="otpDelivery" value="email">
+                        <span>Email ID</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" id="sendOtpBtn">Send OTP</button>
+        </form>
+
+        <div class="otp-section" id="otpSection">
+            <div class="otp-info">
+                <div id="otpSentMessage">OTP has been sent</div>
+                <div class="otp-display" id="otpDisplay"></div>
+                <div class="otp-sent-to" id="otpSentTo"></div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">Please check your phone/email for the OTP code</div>
+            </div>
+
+            <form id="otpForm">
+                <div class="form-group">
+                    <label for="otp">Enter OTP <span class="required">*</span></label>
+                    <input type="number" id="otp" name="otp" maxlength="6" required>
+                    <div class="error-message" id="otpError"></div>
+                </div>
+
+                <button type="submit" id="verifyOtpBtn">Verify OTP</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Country code configurations
+        const countryConfigs = {
+            '+91': {
+                name: 'India',
+                pattern: /^[6-9]\d{9}$/,
+                maxLength: 10,
+                placeholder: '10-digit number (starts with 6-9)',
+                example: '9876543210'
+            },
+            '+971': {
+                name: 'UAE',
+                pattern: /^[2-9]\d{8}$/,
+                maxLength: 9,
+                placeholder: '9-digit number',
+                example: '501234567'
+            },
+            '+966': {
+                name: 'Saudi Arabia',
+                pattern: /^[5]\d{8}$/,
+                maxLength: 9,
+                placeholder: '9-digit number (starts with 5)',
+                example: '501234567'
+            }
+        };
+
+        // Mobile number validation based on country
+        function validateMobile(mobile, countryCode) {
+            if (!countryConfigs[countryCode]) {
+                return false;
+            }
+            const config = countryConfigs[countryCode];
+            return config.pattern.test(mobile);
+        }
+
+        // Generate 6-digit OTP
+        function generateOTP() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Show error message
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+        }
+
+        // Hide error message
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.classList.remove('show');
+        }
+
+        // Validate email format
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Initialize mobile input - ensure it's always enabled
+        const mobileInput = document.getElementById('mobile');
+        mobileInput.removeAttribute('disabled');
+        mobileInput.setAttribute('autocomplete', 'tel');
+
+        // Update mobile input based on country selection
+        document.getElementById('countryCode').addEventListener('change', function() {
+            const countryCode = this.value;
+            const mobileInput = document.getElementById('mobile');
+            const countryDisplay = document.getElementById('countryCodeDisplay');
+            
+            // Always ensure mobile input is enabled
+            mobileInput.removeAttribute('disabled');
+            
+            if (countryCode && countryConfigs[countryCode]) {
+                const config = countryConfigs[countryCode];
+                countryDisplay.value = countryCode;
+                mobileInput.placeholder = `Enter ${config.name} number (e.g., ${config.example})`;
+                mobileInput.maxLength = config.maxLength;
+                mobileInput.focus(); // Focus on mobile input after country selection
+                hideError('countryError');
+                hideError('mobileError');
+            } else {
+                countryDisplay.value = '';
+                mobileInput.placeholder = 'Enter your mobile number';
+                mobileInput.maxLength = 15;
+            }
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Hide all previous errors
+            ['nameError', 'organisationError', 'countryError', 'mobileError', 'emailError'].forEach(hideError);
+
+            // Get form values
+            const name = document.getElementById('name').value.trim();
+            const organisation = document.getElementById('organisation').value.trim();
+            const countryCode = document.getElementById('countryCode').value;
+            const mobile = document.getElementById('mobile').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const otpDelivery = document.querySelector('input[name="otpDelivery"]:checked').value;
+
+            let isValid = true;
+
+            // Validate name
+            if (!name) {
+                showError('nameError', 'Name is required');
+                isValid = false;
+            }
+
+            // Validate organisation
+            if (!organisation) {
+                showError('organisationError', 'Organisation is required');
+                isValid = false;
+            }
+
+            // Validate country code
+            if (!countryCode) {
+                showError('countryError', 'Please select a country');
+                isValid = false;
+            }
+
+            // Validate mobile
+            if (!mobile) {
+                showError('mobileError', 'Mobile number is required');
+                isValid = false;
+            } else if (countryCode && !validateMobile(mobile, countryCode)) {
+                const config = countryConfigs[countryCode];
+                showError('mobileError', `Please enter a valid ${config.name} mobile number (${config.placeholder})`);
+                isValid = false;
+            }
+
+            // Validate email
+            if (!email) {
+                showError('emailError', 'Email is required');
+                isValid = false;
+            } else if (!validateEmail(email)) {
+                showError('emailError', 'Please enter a valid email address');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Offline OTP flow (no server required)
+                const otp = generateOTP();
+
+                // Store OTP in sessionStorage
+                sessionStorage.setItem('otp', otp);
+
+                // Store form data temporarily (will be saved after OTP verification)
+                sessionStorage.setItem('tempUserData', JSON.stringify({
+                    name: name,
+                    organisation: organisation,
+                    countryCode: countryCode,
+                    mobile: mobile,
+                    email: email,
+                    fullMobile: countryCode + mobile,
+                    otpDelivery: otpDelivery
+                }));
+
+                // Determine where OTP was "sent" (simulated)
+                let otpSentTo = '';
+                let otpSentMessage = '';
+                if (otpDelivery === 'mobile') {
+                    otpSentTo = `Mobile: ${countryCode} ${mobile}`;
+                    otpSentMessage = 'OTP is generated (simulated SMS)';
+                } else {
+                    otpSentTo = `Email: ${email}`;
+                    otpSentMessage = 'OTP is generated (simulated Email)';
+                }
+
+                // Display OTP section and show OTP on screen
+                document.getElementById('otpSection').classList.add('show');
+                document.getElementById('otpDisplay').textContent = otp;
+                document.getElementById('otpSentMessage').textContent = otpSentMessage;
+                document.getElementById('otpSentTo').textContent = otpSentTo;
+
+                // Scroll to OTP section
+                document.getElementById('otpSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+
+        // OTP form submission
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            hideError('otpError');
+
+            const enteredOtp = document.getElementById('otp').value.trim();
+            const tempUserData = JSON.parse(sessionStorage.getItem('tempUserData'));
+            const storedOtp = sessionStorage.getItem('otp');
+
+            if (!enteredOtp) {
+                showError('otpError', 'Please enter the OTP');
+                return;
+            }
+
+            if (enteredOtp.length !== 6) {
+                showError('otpError', 'OTP must be 6 digits');
+                return;
+            }
+
+            if (!tempUserData) {
+                showError('otpError', 'Session expired. Please start over.');
+                return;
+            }
+
+            if (!storedOtp) {
+                showError('otpError', 'OTP expired. Please click "Send OTP" again.');
+                return;
+            }
+
+            if (enteredOtp !== storedOtp) {
+                showError('otpError', 'Invalid OTP. Please try again.');
+                return;
+            }
+
+            // Save user data to localStorage
+            localStorage.setItem('userData', JSON.stringify(tempUserData));
+
+            // Clear temporary data and OTP
+            sessionStorage.removeItem('tempUserData');
+            sessionStorage.removeItem('otp');
+
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        });
+
+        // Restrict mobile input to numbers only - ensure it's always enabled
+        mobileInput.addEventListener('input', function(e) {
+            // Ensure field is enabled
+            e.target.removeAttribute('disabled');
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            // Auto-validate length based on country
+            const countryCode = document.getElementById('countryCode').value;
+            if (countryCode && countryConfigs[countryCode]) {
+                const maxLength = countryConfigs[countryCode].maxLength;
+                if (e.target.value.length > maxLength) {
+                    e.target.value = e.target.value.slice(0, maxLength);
+                }
+            }
+            // Clear any error when user starts typing
+            hideError('mobileError');
+        });
+
+        // Ensure mobile input is always clickable and enabled
+        mobileInput.addEventListener('click', function(e) {
+            e.target.removeAttribute('disabled');
+            e.target.focus();
+        });
+
+        // Allow mobile input to be focused and typed even without country selection
+        mobileInput.addEventListener('focus', function() {
+            this.removeAttribute('disabled');
+            const countryCode = document.getElementById('countryCode').value;
+            if (!countryCode) {
+                // Show helpful hint
+                const mobileError = document.getElementById('mobileError');
+                mobileError.textContent = 'Tip: Select a country first for proper validation';
+                mobileError.classList.add('show');
+            } else {
+                hideError('mobileError');
+            }
+        });
+
+        // Restrict OTP input to numbers only
+        document.getElementById('otp').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+        // Check if user is already logged in
+        if (localStorage.getItem('userData')) {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Final check - ensure mobile input is enabled when page loads
+        window.addEventListener('load', function() {
+            const mobileInput = document.getElementById('mobile');
+            if (mobileInput) {
+                mobileInput.removeAttribute('disabled');
+                mobileInput.setAttribute('tabindex', '0');
+                console.log('Mobile input field is enabled and ready');
+            }
+        });
+
+        // Debug helper - log if mobile input is clicked
+        document.getElementById('mobile').addEventListener('click', function() {
+            console.log('Mobile input clicked - field should be enabled');
+            this.removeAttribute('disabled');
+        });
+    </script>
+</body>
+</html>
